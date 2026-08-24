@@ -78,12 +78,13 @@ class VoyagerThrustStrategy(IStrategy):
     can_short: bool = True
 
     # Base Timeframe
-    timeframe: str = "5m"
+    timeframe: str = "30m"
 
     # Multi-timeframe Informatives
-    inf_tf_1: str = "15m"  # Primary Thrust TF
-    inf_tf_2: str = "30m"  # Secondary Thrust Alt TF
+    inf_tf_1: str = "15m"  # Primary Thrust TF (for 5m base)
+    inf_tf_2: str = "30m"  # Secondary Thrust Alt TF (for 5m base)
     inf_tf_htf: str = "1h"  # HTF Base Trend TF (SMA 50 + HTF Thrust)
+    inf_tf_4h: str = "4h"   # 4h Thrust Alt TF (for 30m base)
 
     # Strategy Settings
     process_only_new_candles = True
@@ -127,6 +128,8 @@ class VoyagerThrustStrategy(IStrategy):
             "Thrust Oscillator": {
                 "thrust_15m": {"color": "#00e676"},
                 "thrust_30m": {"color": "#00bcd4"},
+                "thrust_1h": {"color": "#ff9800"},
+                "thrust_4h": {"color": "#9c27b0"},
             },
             "ADX Trend Strength": {
                 "adx": {"color": "#e91e63"},
@@ -186,12 +189,18 @@ class VoyagerThrustStrategy(IStrategy):
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """
         Entry Conditions:
-        Long: close > smaChart & close > smaHtf & thrust15m > 0 & thrustTrend15m == 1 & thrustTrend30m == 1 & adx >= 20
-        Short: close < smaChart & close < smaHtf & thrust15m < 0 & thrustTrend15m == -1 & thrustTrend30m == -1 & adx >= 20
+        Long: close > smaChart & close > smaHtf & thrustPrimary > 0 & thrustTrendPrimary == 1 & thrustTrendAlt == 1 & adx >= 20
+        Short: close < smaChart & close < smaHtf & thrustPrimary < 0 & thrustTrendPrimary == -1 & thrustTrendAlt == -1 & adx >= 20
         """
-        thrust_15m = dataframe["thrust_15m"]
-        thrust_trend_15m = dataframe["thrust_trend_15m"]
-        thrust_trend_30m = dataframe["thrust_trend_30m"]
+        # Map thrust oscillator based on base timeframe (Pine Script mapping: 30m base -> 1h & 4h thrust)
+        if self.timeframe in ("30m", "1h") and "thrust_1h" in dataframe and "thrust_4h" in dataframe:
+            thrust_primary = dataframe["thrust_1h"]
+            thrust_trend_primary = dataframe["thrust_trend_1h"]
+            thrust_trend_alt = dataframe["thrust_trend_4h"]
+        else:
+            thrust_primary = dataframe["thrust_15m"] if "thrust_15m" in dataframe else dataframe["thrust_30m"]
+            thrust_trend_primary = dataframe["thrust_trend_15m"] if "thrust_trend_15m" in dataframe else dataframe["thrust_trend_30m"]
+            thrust_trend_alt = dataframe["thrust_trend_30m"] if "thrust_trend_30m" in dataframe else dataframe["thrust_trend_1h"]
 
         htf_choice = self.htf_base_tf.value
         if htf_choice != "chart" and f"sma_htf_{htf_choice}" in dataframe:
@@ -203,9 +212,9 @@ class VoyagerThrustStrategy(IStrategy):
         long_condition = (
             (dataframe["close"] > dataframe["sma_chart"])
             & (dataframe["close"] > sma_htf)
-            & (thrust_trend_15m == 1)
-            & (thrust_trend_30m == 1)
-            & (thrust_15m > 0)
+            & (thrust_trend_primary == 1)
+            & (thrust_trend_alt == 1)
+            & (thrust_primary > 0)
             & (dataframe["adx_ok"])
         )
 
@@ -216,9 +225,9 @@ class VoyagerThrustStrategy(IStrategy):
         short_condition = (
             (dataframe["close"] < dataframe["sma_chart"])
             & (dataframe["close"] < sma_htf)
-            & (thrust_trend_15m == -1)
-            & (thrust_trend_30m == -1)
-            & (thrust_15m < 0)
+            & (thrust_trend_primary == -1)
+            & (thrust_trend_alt == -1)
+            & (thrust_primary < 0)
             & (dataframe["adx_ok"])
         )
 
