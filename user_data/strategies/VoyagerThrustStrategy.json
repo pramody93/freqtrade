@@ -1,0 +1,37 @@
+{
+  "strategy_name": "VoyagerThrustStrategy",
+  "params": {
+    "roi": {
+      "0": 10.0
+    },
+    "stoploss": {
+      "stoploss": -0.1
+    },
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": null,
+      "trailing_stop_positive_offset": 0.0,
+      "trailing_only_offset_is_reached": false
+    },
+    "max_open_trades": {
+      "max_open_trades": 2
+    },
+    "buy": {
+      "adx_len": 14,
+      "atr_len": 14,
+      "sma_len": 50,
+      "use_adx_filter": true,
+      "adx_min": 20.0
+    },
+    "sell": {
+      "sl_atr_mult": 1.5,
+      "tp1_atr_mult": 2.0,
+      "tp2_atr_mult": 4.0,
+      "tp3_atr_mult": 6.0,
+      "use_trail_after_tp2": false,
+      "trail_atr_mult": 2.0
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2026-08-24 19:04:49.391025+00:00"
+}
