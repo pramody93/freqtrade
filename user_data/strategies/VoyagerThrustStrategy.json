@@ -17,6 +17,7 @@
       "max_open_trades": 2
     },
     "buy": {
+      "htf_base_tf": "chart",
       "adx_len": 14,
       "atr_len": 14,
       "sma_len": 50,

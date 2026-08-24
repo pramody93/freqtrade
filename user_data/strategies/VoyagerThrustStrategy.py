@@ -22,6 +22,7 @@ from freqtrade.strategy import (
     PairLocks,
     informative,
     stoploss_from_open,
+    CategoricalParameter,
     DecimalParameter,
     IntParameter,
     BooleanParameter,
@@ -105,6 +106,8 @@ class VoyagerThrustStrategy(IStrategy):
     use_trail_after_tp2 = BooleanParameter(default=False, space="sell", optimize=False)
     trail_atr_mult = DecimalParameter(1.0, 4.0, default=2.0, decimals=2, space="sell", optimize=False)
 
+    htf_base_tf = CategoricalParameter(["chart", "15m", "30m", "1h", "4h"], default="chart", space="buy", optimize=True)
+
     # Indicators Lengths
     sma_len = IntParameter(20, 100, default=50, space="buy", optimize=False)
     atr_len = IntParameter(7, 21, default=14, space="buy", optimize=False)
@@ -118,12 +121,12 @@ class VoyagerThrustStrategy(IStrategy):
     plot_config = {
         "main_plot": {
             "sma_chart": {"color": "#ffa500"},
-            f"sma_htf_{inf_tf_htf}": {"color": "#2196f3"},
+            "sma_htf_1h": {"color": "#2196f3"},
         },
         "subplots": {
             "Thrust Oscillator": {
-                f"thrust_{inf_tf_1}": {"color": "#00e676"},
-                f"thrust_{inf_tf_2}": {"color": "#00bcd4"},
+                "thrust_15m": {"color": "#00e676"},
+                "thrust_30m": {"color": "#00bcd4"},
             },
             "ADX Trend Strength": {
                 "adx": {"color": "#e91e63"},
@@ -133,6 +136,7 @@ class VoyagerThrustStrategy(IStrategy):
 
     @informative("15m")
     def populate_indicators_15m(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe["sma_htf"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
         pulse = calc_thrust_pulse(dataframe["close"])
         dataframe["thrust"] = pulse
         dataframe["thrust_trend"] = calc_thrust_trend_direction(pulse)
@@ -140,6 +144,7 @@ class VoyagerThrustStrategy(IStrategy):
 
     @informative("30m")
     def populate_indicators_30m(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe["sma_htf"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
         pulse = calc_thrust_pulse(dataframe["close"])
         dataframe["thrust"] = pulse
         dataframe["thrust_trend"] = calc_thrust_trend_direction(pulse)
@@ -147,6 +152,14 @@ class VoyagerThrustStrategy(IStrategy):
 
     @informative("1h")
     def populate_indicators_1h(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe["sma_htf"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
+        pulse = calc_thrust_pulse(dataframe["close"])
+        dataframe["thrust"] = pulse
+        dataframe["thrust_trend"] = calc_thrust_trend_direction(pulse)
+        return dataframe
+
+    @informative("4h")
+    def populate_indicators_4h(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe["sma_htf"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
         pulse = calc_thrust_pulse(dataframe["close"])
         dataframe["thrust"] = pulse
@@ -176,11 +189,15 @@ class VoyagerThrustStrategy(IStrategy):
         Long: close > smaChart & close > smaHtf & thrust15m > 0 & thrustTrend15m == 1 & thrustTrend30m == 1 & adx >= 20
         Short: close < smaChart & close < smaHtf & thrust15m < 0 & thrustTrend15m == -1 & thrustTrend30m == -1 & adx >= 20
         """
-        # Column names merged from informative decorators
         thrust_15m = dataframe["thrust_15m"]
         thrust_trend_15m = dataframe["thrust_trend_15m"]
         thrust_trend_30m = dataframe["thrust_trend_30m"]
-        sma_htf = dataframe[f"sma_htf_{self.inf_tf_htf}"]
+
+        htf_choice = self.htf_base_tf.value
+        if htf_choice != "chart" and f"sma_htf_{htf_choice}" in dataframe:
+            sma_htf = dataframe[f"sma_htf_{htf_choice}"]
+        else:
+            sma_htf = dataframe["sma_chart"]
 
         # Long Condition
         long_condition = (
