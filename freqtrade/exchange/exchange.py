@@ -441,12 +441,14 @@ class Exchange:
     @property
     def name(self) -> str:
         """exchange Name (from ccxt)"""
-        return self._api.name if not self._is_demo_trading else f"{self._api.name} (Demo)"
+        ex_name = self._api.name if self._api else self._config.get("exchange", {}).get("name", "Unknown")
+        return ex_name if not self._is_demo_trading else f"{ex_name} (Demo)"
 
     @property
     def id(self) -> str:
         """exchange ccxt id"""
-        return self._api.id if not self._is_demo_trading else f"{self._api.id}_demo"
+        ex_id = self._api.id if self._api else self._config.get("exchange", {}).get("name", "Unknown")
+        return ex_id if not self._is_demo_trading else f"{ex_id}_demo"
 
     @property
     def timeframes(self) -> list[str]:
@@ -4139,6 +4141,11 @@ class Exchange:
             or self.exchange_has("fetchLeverageTiers")
             or self.exchange_has("fetchMarketLeverageTiers")
         ):
+            if not self._ft_has.get("uses_leverage_tiers", True):
+                market = self.markets.get(pair, {})
+                mm_rate = market.get("maintenanceMarginRate") or 0.01
+                return (mm_rate, 0.0)
+
             if pair not in self._leverage_tiers:
                 raise InvalidOrderException(
                     f"Maintenance margin rate for {pair} is unavailable for {self.name}"

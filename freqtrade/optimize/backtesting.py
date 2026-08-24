@@ -1012,15 +1012,16 @@ class Backtesting:
         if self.trading_mode == TradingMode.FUTURES:
             if force or (current_time.timestamp() % self.funding_fee_timeframe_secs) == 0:
                 # Funding fee interval.
-                trade.set_funding_fees(
-                    self.exchange.calculate_funding_fees(
-                        self.futures_data[trade.pair],
-                        amount=trade.amount,
-                        is_short=trade.is_short,
-                        open_date=trade.date_last_filled_utc,
-                        close_date=current_time,
+                if trade.pair in self.futures_data:
+                    trade.set_funding_fees(
+                        self.exchange.calculate_funding_fees(
+                            self.futures_data[trade.pair],
+                            amount=trade.amount,
+                            is_short=trade.is_short,
+                            open_date=trade.date_last_filled_utc,
+                            close_date=current_time,
+                        )
                     )
-                )
 
     def get_valid_entry_price_and_stake(
         self,

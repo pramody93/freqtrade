@@ -24,6 +24,10 @@ class Delta(Exchange):
         "ohlcv_has_history": True,
         "trades_has_history": False,
         "ws_enabled": False,
+        "exchange_has_overrides": {
+            "fetchFundingRateHistory": False,
+            "fetchFundingRates": False,
+        },
     }
 
     _ft_has_futures: FtHas = {
