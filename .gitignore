@@ -1,5 +1,7 @@
 # Freqtrade rules
 config*.json
+!config_examples/*.example.json
+uv.lock
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal

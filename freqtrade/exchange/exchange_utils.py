@@ -36,7 +36,8 @@ CcxtModuleType = Any
 
 
 def is_exchange_known_ccxt(exchange_name: str, ccxt_module: CcxtModuleType | None = None) -> bool:
-    return exchange_name in ccxt_exchanges(ccxt_module)
+    mapped = MAP_EXCHANGE_CHILDCLASS.get(exchange_name.lower(), exchange_name.lower())
+    return mapped in ccxt_exchanges(ccxt_module) or exchange_name in ccxt_exchanges(ccxt_module)
 
 
 def ccxt_exchanges(ccxt_module: CcxtModuleType | None = None) -> list[str]:
@@ -74,10 +75,14 @@ def validate_exchange(exchange: str) -> tuple[bool, str, str, ccxt.Exchange | No
     returns: can_use, reason, exchange_object
         with Reason including both missing and missing_opt
     """
+    mapped_exchange = MAP_EXCHANGE_CHILDCLASS.get(exchange.lower(), exchange.lower())
     try:
-        ex_mod = getattr(ccxt.pro, exchange.lower())()
+        ex_mod = getattr(ccxt.pro, mapped_exchange)()
     except AttributeError:
-        ex_mod = getattr(ccxt.async_support, exchange.lower())()
+        try:
+            ex_mod = getattr(ccxt.async_support, mapped_exchange)()
+        except AttributeError:
+            return False, f"Exchange {exchange} not found", "", None
 
     if not ex_mod or not ex_mod.has:
         return False, "", "", None

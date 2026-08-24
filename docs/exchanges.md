@@ -541,6 +541,59 @@ If your account is required to use an operatorId, you can set it in the configur
 
 Bitvavo expects the `operatorId` to be an integer.
 
+## Delta Exchange / Delta Exchange India
+
+Freqtrade supports both **Delta Exchange** (Global) and **Delta Exchange India** for Spot and Futures trading modes.
+
+Delta Exchange India provides INR-settled crypto markets and is registered with FIU-IND.
+
+### Supported Modes
+
+* **Spot Trading**: Supported with standard quote currencies (e.g., `INR`, `USDT`).
+* **Futures Trading**: Supported with both `isolated` and `cross` margin modes.
+
+### Sample Configuration for Delta Exchange India
+
+To configure Freqtrade for Delta Exchange India, use `"name": "deltaindia"` (or `"name": "delta"` with India API URLs in `ccxt_config`):
+
+```json
+"exchange": {
+    "name": "deltaindia",
+    "key": "your_delta_india_api_key",
+    "secret": "your_delta_india_api_secret",
+    "ccxt_config": {
+        "enableRateLimit": true,
+        "urls": {
+            "api": {
+                "public": "https://api.india.delta.exchange",
+                "private": "https://api.india.delta.exchange"
+            }
+        }
+    },
+    "ccxt_async_config": {
+        "enableRateLimit": true,
+        "urls": {
+            "api": {
+                "public": "https://api.india.delta.exchange",
+                "private": "https://api.india.delta.exchange"
+            }
+        }
+    },
+    "pair_whitelist": [
+        "BTC/INR",
+        "ETH/INR",
+        "USDT/INR"
+    ],
+    "pair_blacklist": []
+}
+```
+
+!!! Note "India 1% TDS"
+    Delta Exchange India automatically deducts 1% TDS on crypto sell transactions. Freqtrade calculates gross PnL.
+
+!!! Warning "System Clock Synchronization"
+    Delta Exchange API signatures require accurate timestamps. Ensure your system time is synced with NTP (within 5 seconds) to avoid authentication errors.
+
 ## All exchanges
 
 Should you experience constant errors with Nonce (like `InvalidNonce`), it is best to regenerate the API keys. Resetting Nonce is difficult and it's usually easier to regenerate the API keys.

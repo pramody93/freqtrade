@@ -45,6 +45,10 @@ BAD_EXCHANGES = {
 }
 
 MAP_EXCHANGE_CHILDCLASS = {
+    "delta-india": "delta",
+    "delta_india": "delta",
+    "deltain": "delta",
+    "deltaindia": "delta",
     "gateio": "gate",
     "huboi": "htx",
     "kucoineu": "kucoin",
@@ -59,6 +63,8 @@ SUPPORTED_EXCHANGES = [
     "bitget",
     "bybit",
     "bybiteu",
+    "delta",
+    "deltaindia",
     "gate",
     "gateeu",
     "htx",

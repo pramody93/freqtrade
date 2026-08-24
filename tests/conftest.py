@@ -17,7 +17,12 @@ from freqtrade import constants
 from freqtrade.commands import Arguments
 from freqtrade.data.converter import ohlcv_to_dataframe, trades_list_to_df
 from freqtrade.enums import CandleType, MarginMode, SignalDirection, TradingMode
-from freqtrade.exchange import Exchange, timeframe_to_minutes, timeframe_to_seconds
+from freqtrade.exchange import (
+    MAP_EXCHANGE_CHILDCLASS,
+    Exchange,
+    timeframe_to_minutes,
+    timeframe_to_seconds,
+)
 from freqtrade.freqtradebot import FreqtradeBot
 from freqtrade.persistence import LocalTrade, Order, Trade, init_db
 from freqtrade.resolvers import ExchangeResolver
@@ -255,9 +260,10 @@ def patch_exchange(
             mock_markets = get_markets()
         mocker.patch(f"{EXMS}.markets", PropertyMock(return_value=mock_markets))
 
+    mapped_exchange = MAP_EXCHANGE_CHILDCLASS.get(exchange, exchange)
     if mock_supported_modes:
         mocker.patch(
-            f"freqtrade.exchange.{exchange}.{exchange.capitalize()}"
+            f"freqtrade.exchange.{mapped_exchange}.{mapped_exchange.capitalize()}"
             "._supported_trading_mode_margin_pairs",
             PropertyMock(
                 return_value=[

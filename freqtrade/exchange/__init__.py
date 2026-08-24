@@ -13,6 +13,7 @@ from freqtrade.exchange.bitvavo import Bitvavo
 from freqtrade.exchange.bybit import Bybit, BybitEU
 from freqtrade.exchange.coinex import Coinex
 from freqtrade.exchange.cryptocom import Cryptocom
+from freqtrade.exchange.delta import Delta, DeltaIndia, Deltaindia
 from freqtrade.exchange.exchange_utils import (
     ROUND_DOWN,
     ROUND_UP,

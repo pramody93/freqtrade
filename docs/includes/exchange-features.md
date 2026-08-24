@@ -21,4 +21,6 @@
 | [OKX](exchanges.md#okx) | spot | | market, limit |
 | [OKX](exchanges.md#okx) | futures | isolated | market, limit |
 | [Bitvavo](exchanges.md#bitvavo) | spot | | ❌ (not available) |
+| [Delta Exchange](exchanges.md#delta-exchange--delta-exchange-india) | spot | | ❌ (not available) |
+| [Delta Exchange](exchanges.md#delta-exchange--delta-exchange-india) | futures | isolated, cross | ❌ (not available) |
 | [Kucoin](exchanges.md#kucoin) | spot | | market, limit |

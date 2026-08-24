@@ -65,6 +65,7 @@ from freqtrade.exceptions import (
 )
 from freqtrade.exchange.common import (
     API_FETCH_ORDER_RETRY_COUNT,
+    MAP_EXCHANGE_CHILDCLASS,
     retrier,
     retrier_async,
 )
@@ -378,7 +379,9 @@ class Exchange:
         Initialize ccxt with given config and return valid ccxt instance.
         """
         # Find matching class for the given exchange name
-        name = exchange_config["name"]
+        name = MAP_EXCHANGE_CHILDCLASS.get(
+            exchange_config["name"].lower(), exchange_config["name"]
+        )
         if sync:
             ccxt_module = ccxt
         else:
