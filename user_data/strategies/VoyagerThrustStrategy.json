@@ -1,5 +1,6 @@
 {
   "strategy_name": "VoyagerThrustStrategy",
+  "timeframe": "30m",
   "params": {
     "roi": {
       "0": 10.0
@@ -17,22 +18,19 @@
       "max_open_trades": 2
     },
     "buy": {
-      "htf_base_tf": "chart",
       "adx_len": 14,
       "atr_len": 14,
       "sma_len": 50,
       "use_adx_filter": true,
-      "adx_min": 20.0
+      "adx_min": 13.4
     },
     "sell": {
-      "sl_atr_mult": 1.5,
-      "tp1_atr_mult": 2.0,
-      "tp2_atr_mult": 4.0,
-      "tp3_atr_mult": 6.0,
-      "use_trail_after_tp2": false,
-      "trail_atr_mult": 2.0
+      "sl_atr_mult": 2.98,
+      "tp1_atr_mult": 3.33,
+      "tp2_atr_mult": 3.03,
+      "tp3_atr_mult": 7.41
     }
   },
   "ft_stratparam_v": 1,
-  "export_time": "2026-08-24 19:04:49.391025+00:00"
+  "export_time": "2026-08-24 19:45:36.521688+00:00"
 }

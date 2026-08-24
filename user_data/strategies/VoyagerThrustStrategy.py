@@ -107,7 +107,7 @@ class VoyagerThrustStrategy(IStrategy):
     use_trail_after_tp2 = BooleanParameter(default=False, space="sell", optimize=False)
     trail_atr_mult = DecimalParameter(1.0, 4.0, default=2.0, decimals=2, space="sell", optimize=False)
 
-    htf_base_tf = CategoricalParameter(["chart", "15m", "30m", "1h", "4h"], default="chart", space="buy", optimize=True)
+    htf_base_tf = CategoricalParameter(["chart", "1h", "4h", "1d"], default="chart", space="buy", optimize=True)
 
     # Indicators Lengths
     sma_len = IntParameter(20, 100, default=50, space="buy", optimize=False)
@@ -123,35 +123,18 @@ class VoyagerThrustStrategy(IStrategy):
         "main_plot": {
             "sma_chart": {"color": "#ffa500"},
             "sma_htf_1h": {"color": "#2196f3"},
+            "sma_htf_4h": {"color": "#9c27b0"},
         },
         "subplots": {
             "Thrust Oscillator": {
-                "thrust_15m": {"color": "#00e676"},
-                "thrust_30m": {"color": "#00bcd4"},
-                "thrust_1h": {"color": "#ff9800"},
-                "thrust_4h": {"color": "#9c27b0"},
+                "thrust_1h": {"color": "#00e676"},
+                "thrust_4h": {"color": "#00bcd4"},
             },
             "ADX Trend Strength": {
                 "adx": {"color": "#e91e63"},
             },
         },
     }
-
-    @informative("15m")
-    def populate_indicators_15m(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe["sma_htf"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
-        pulse = calc_thrust_pulse(dataframe["close"])
-        dataframe["thrust"] = pulse
-        dataframe["thrust_trend"] = calc_thrust_trend_direction(pulse)
-        return dataframe
-
-    @informative("30m")
-    def populate_indicators_30m(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe["sma_htf"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
-        pulse = calc_thrust_pulse(dataframe["close"])
-        dataframe["thrust"] = pulse
-        dataframe["thrust_trend"] = calc_thrust_trend_direction(pulse)
-        return dataframe
 
     @informative("1h")
     def populate_indicators_1h(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -163,6 +146,14 @@ class VoyagerThrustStrategy(IStrategy):
 
     @informative("4h")
     def populate_indicators_4h(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        dataframe["sma_htf"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
+        pulse = calc_thrust_pulse(dataframe["close"])
+        dataframe["thrust"] = pulse
+        dataframe["thrust_trend"] = calc_thrust_trend_direction(pulse)
+        return dataframe
+
+    @informative("1d")
+    def populate_indicators_1d(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         dataframe["sma_htf"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
         pulse = calc_thrust_pulse(dataframe["close"])
         dataframe["thrust"] = pulse
@@ -192,15 +183,10 @@ class VoyagerThrustStrategy(IStrategy):
         Long: close > smaChart & close > smaHtf & thrustPrimary > 0 & thrustTrendPrimary == 1 & thrustTrendAlt == 1 & adx >= 20
         Short: close < smaChart & close < smaHtf & thrustPrimary < 0 & thrustTrendPrimary == -1 & thrustTrendAlt == -1 & adx >= 20
         """
-        # Map thrust oscillator based on base timeframe (Pine Script mapping: 30m base -> 1h & 4h thrust)
-        if self.timeframe in ("30m", "1h") and "thrust_1h" in dataframe and "thrust_4h" in dataframe:
-            thrust_primary = dataframe["thrust_1h"]
-            thrust_trend_primary = dataframe["thrust_trend_1h"]
-            thrust_trend_alt = dataframe["thrust_trend_4h"]
-        else:
-            thrust_primary = dataframe["thrust_15m"] if "thrust_15m" in dataframe else dataframe["thrust_30m"]
-            thrust_trend_primary = dataframe["thrust_trend_15m"] if "thrust_trend_15m" in dataframe else dataframe["thrust_trend_30m"]
-            thrust_trend_alt = dataframe["thrust_trend_30m"] if "thrust_trend_30m" in dataframe else dataframe["thrust_trend_1h"]
+        # Primary Thrust: 1h, Alt Thrust: 4h
+        thrust_primary = dataframe["thrust_1h"]
+        thrust_trend_primary = dataframe["thrust_trend_1h"]
+        thrust_trend_alt = dataframe["thrust_trend_4h"]
 
         htf_choice = self.htf_base_tf.value
         if htf_choice != "chart" and f"sma_htf_{htf_choice}" in dataframe:
