@@ -312,8 +312,9 @@ class VoyagerThrustStrategy(IStrategy):
                 return "tp3_target_exit"
 
         # Trend-Flip Exit
-        sma_htf_col = f"sma_htf_{self.inf_tf_htf}"
-        thrust_htf_col = f"thrust_{self.inf_tf_htf}"
+        htf_choice = self.htf_base_tf.value
+        sma_htf_col = f"sma_htf_{htf_choice}" if (htf_choice != "chart" and f"sma_htf_{htf_choice}" in last_candle) else "sma_chart"
+        thrust_htf_col = f"thrust_{htf_choice}" if (htf_choice != "chart" and f"thrust_{htf_choice}" in last_candle) else "thrust_1h"
 
         if sma_htf_col in last_candle and thrust_htf_col in last_candle:
             sma_htf_val = last_candle[sma_htf_col]
