@@ -99,21 +99,21 @@ class VoyagerThrustStrategy(IStrategy):
     stoploss = -0.10
 
     # Risk Management Multipliers (Hyperoptable)
-    sl_atr_mult = DecimalParameter(1.0, 3.0, default=1.5, decimals=2, space="sell", optimize=True)
-    tp1_atr_mult = DecimalParameter(1.5, 3.5, default=2.0, decimals=2, space="sell", optimize=True)
-    tp2_atr_mult = DecimalParameter(3.0, 5.5, default=4.0, decimals=2, space="sell", optimize=True)
-    tp3_atr_mult = DecimalParameter(5.0, 8.0, default=6.0, decimals=2, space="sell", optimize=True)
+    sl_atr_mult = DecimalParameter(1.0, 3.0, default=1.3, decimals=2, space="sell", optimize=True)
+    tp1_atr_mult = DecimalParameter(1.0, 3.0, default=1.3, decimals=2, space="sell", optimize=True)
+    tp2_atr_mult = DecimalParameter(1.5, 4.0, default=2.1, decimals=2, space="sell", optimize=True)
+    tp3_atr_mult = DecimalParameter(2.5, 6.0, default=3.4, decimals=2, space="sell", optimize=True)
 
-    use_trail_after_tp2 = BooleanParameter(default=False, space="sell", optimize=False)
-    trail_atr_mult = DecimalParameter(1.0, 4.0, default=2.0, decimals=2, space="sell", optimize=False)
+    use_trail_after_tp2 = BooleanParameter(default=True, space="sell", optimize=False)
+    trail_atr_mult = DecimalParameter(1.0, 3.0, default=1.3, decimals=2, space="sell", optimize=False)
 
     htf_base_tf = CategoricalParameter(["chart", "1h", "4h", "1d"], default="chart", space="buy", optimize=True)
 
     # Indicators Lengths
-    sma_len = IntParameter(20, 100, default=50, space="buy", optimize=False)
-    atr_len = IntParameter(7, 21, default=14, space="buy", optimize=False)
-    adx_len = IntParameter(7, 21, default=14, space="buy", optimize=False)
-    adx_min = DecimalParameter(10.0, 35.0, default=20.0, decimals=1, space="buy", optimize=True)
+    sma_len = IntParameter(10, 60, default=34, space="buy", optimize=False)
+    atr_len = IntParameter(7, 21, default=13, space="buy", optimize=False)
+    adx_len = IntParameter(7, 21, default=13, space="buy", optimize=False)
+    adx_min = DecimalParameter(5.0, 25.0, default=8.0, decimals=1, space="buy", optimize=True)
     use_adx_filter = BooleanParameter(default=True, space="buy", optimize=False)
 
     use_custom_stoploss = True
@@ -161,7 +161,7 @@ class VoyagerThrustStrategy(IStrategy):
         return dataframe
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        """Calculate Base Timeframe Indicators (SMA 50, ATR 14, ADX 14)"""
+        """Calculate Base Timeframe Indicators (SMA 34, ATR 13, ADX 13)"""
         # Chart SMA
         dataframe["sma_chart"] = ta.SMA(dataframe["close"], timeperiod=int(self.sma_len.value))
 
@@ -180,8 +180,8 @@ class VoyagerThrustStrategy(IStrategy):
     def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         """
         Entry Conditions:
-        Long: close > smaChart & close > smaHtf & thrustPrimary > 0 & thrustTrendPrimary == 1 & thrustTrendAlt == 1 & adx >= 20
-        Short: close < smaChart & close < smaHtf & thrustPrimary < 0 & thrustTrendPrimary == -1 & thrustTrendAlt == -1 & adx >= 20
+        Long: close > smaChart & close > smaHtf & thrustPrimary > 0 & thrustTrendPrimary == 1 & thrustTrendAlt == 1 & adx >= 8
+        Short: close < smaChart & close < smaHtf & thrustPrimary < 0 & thrustTrendPrimary == -1 & thrustTrendAlt == -1 & adx >= 8
         """
         # Primary Thrust: 1h, Alt Thrust: 4h
         thrust_primary = dataframe["thrust_1h"]
@@ -204,7 +204,7 @@ class VoyagerThrustStrategy(IStrategy):
             & (dataframe["adx_ok"])
         )
 
-        # Trigger entry on signal transition
+        # Trigger entry on signal transition (rawBuySignal = longCondition and not longCondition[1])
         dataframe.loc[long_condition & ~long_condition.shift(1).fillna(False), "enter_long"] = 1
 
         # Short Condition
@@ -217,7 +217,7 @@ class VoyagerThrustStrategy(IStrategy):
             & (dataframe["adx_ok"])
         )
 
-        # Trigger entry on signal transition
+        # Trigger entry on signal transition (rawSellSignal = shortCondition and not shortCondition[1])
         dataframe.loc[short_condition & ~short_condition.shift(1).fillna(False), "enter_short"] = 1
 
         return dataframe
@@ -240,9 +240,9 @@ class VoyagerThrustStrategy(IStrategy):
     ) -> float | None:
         """
         Dynamic ATR-Based Stoploss & Take-Profit Ratchet:
-        - Initial SL = entry - 1.5x ATR
-        - TP1 reached (+2.0x ATR) -> Move SL to Breakeven (0.0% profit)
-        - TP2 reached (+4.0x ATR) -> Move SL to TP1 level (+2.0x ATR profit lock)
+        - Initial SL = entry - 1.3x ATR
+        - TP1 reached (+1.3x ATR) -> Move SL to Breakeven (0.0% profit)
+        - TP2 reached (+2.1x ATR) -> Move SL to TP1 level (+1.3x ATR profit lock) / ATR Trail
         """
         dataframe, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
         if dataframe.empty:
@@ -264,15 +264,20 @@ class VoyagerThrustStrategy(IStrategy):
         tp1_ratio = float(self.tp1_atr_mult.value) * atr_ratio
         tp2_ratio = float(self.tp2_atr_mult.value) * atr_ratio
 
-        # 1. If current profit reached TP2: Lock stoploss at TP1 profit level
+        # 1. If current profit reached TP2: Lock stoploss at TP1 or Trail with ATR
         if current_profit >= tp2_ratio:
+            if self.use_trail_after_tp2.value:
+                current_atr = dataframe["atr"].iloc[-1]
+                trail_ratio = (float(self.trail_atr_mult.value) * current_atr) / current_rate
+                target_ratio = max(tp1_ratio, current_profit - trail_ratio)
+                return stoploss_from_open(target_ratio, current_profit, is_short=trade.is_short, leverage=trade.leverage)
             return stoploss_from_open(tp1_ratio, current_profit, is_short=trade.is_short, leverage=trade.leverage)
 
-        # 2. If current profit reached TP1: Move stoploss to Breakeven (0.1% profit to cover fees)
+        # 2. If current profit reached TP1: Move stoploss to Breakeven (entry price)
         if current_profit >= tp1_ratio:
-            return stoploss_from_open(0.001, current_profit, is_short=trade.is_short, leverage=trade.leverage)
+            return stoploss_from_open(0.0001, current_profit, is_short=trade.is_short, leverage=trade.leverage)
 
-        # 3. Initial stoploss (1.5x ATR below entry)
+        # 3. Initial stoploss (1.3x ATR below entry)
         return stoploss_from_open(-sl_ratio, current_profit, is_short=trade.is_short, leverage=trade.leverage)
 
     def custom_exit(

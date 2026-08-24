@@ -18,17 +18,20 @@
       "max_open_trades": 2
     },
     "buy": {
-      "adx_len": 14,
-      "atr_len": 14,
-      "sma_len": 50,
+      "htf_base_tf": "chart",
+      "adx_len": 13,
+      "atr_len": 13,
+      "sma_len": 34,
       "use_adx_filter": true,
-      "adx_min": 13.4
+      "adx_min": 8.0
     },
     "sell": {
-      "sl_atr_mult": 2.98,
-      "tp1_atr_mult": 3.33,
-      "tp2_atr_mult": 3.03,
-      "tp3_atr_mult": 7.41
+      "sl_atr_mult": 1.3,
+      "tp1_atr_mult": 1.3,
+      "tp2_atr_mult": 2.1,
+      "tp3_atr_mult": 3.4,
+      "use_trail_after_tp2": true,
+      "trail_atr_mult": 1.3
     }
   },
   "ft_stratparam_v": 1,
