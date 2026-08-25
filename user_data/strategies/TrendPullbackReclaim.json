@@ -1,0 +1,38 @@
+{
+  "strategy_name": "TrendPullbackReclaim",
+  "params": {
+    "roi": {
+      "0": 10.0
+    },
+    "stoploss": {
+      "stoploss": -0.1
+    },
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": null,
+      "trailing_stop_positive_offset": 0.0,
+      "trailing_only_offset_is_reached": false
+    },
+    "max_open_trades": {
+      "max_open_trades": 1
+    },
+    "buy": {
+      "atr_len": 14,
+      "max_risk_mult": 1.5,
+      "max_signal_range_mult": 1.5,
+      "min_risk_mult": 0.5,
+      "slope_lookback": 5,
+      "ema_fast_len": 17,
+      "ema_sep_mult": 0.38,
+      "ema_slow_len": 58
+    },
+    "sell": {
+      "enable_trend_failure_exit": true,
+      "max_holding_bars": 24,
+      "stop_buffer_mult": 0.1,
+      "target_r_mult": 2.28
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2026-08-25 17:29:12.468894+00:00"
+}
