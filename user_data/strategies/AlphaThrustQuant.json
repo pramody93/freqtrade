@@ -1,0 +1,39 @@
+{
+  "strategy_name": "AlphaThrustQuant",
+  "params": {
+    "roi": {
+      "0": 10.0
+    },
+    "stoploss": {
+      "stoploss": -0.1
+    },
+    "trailing": {
+      "trailing_stop": false,
+      "trailing_stop_positive": null,
+      "trailing_stop_positive_offset": 0.0,
+      "trailing_only_offset_is_reached": false
+    },
+    "max_open_trades": {
+      "max_open_trades": 1
+    },
+    "buy": {
+      "kama_len": 20,
+      "chop_max": 55.0,
+      "cmf_len": 20,
+      "cmf_threshold": 0.0,
+      "displacement_ratio": 0.6,
+      "displacement_atr_mult": 1.1,
+      "sqz_length": 20
+    },
+    "sell": {
+      "sl_atr_mult": 1.5,
+      "tp1_r_mult": 1.5,
+      "tp2_r_mult": 3.0,
+      "tp3_r_mult": 5.5,
+      "trail_atr_mult": 1.5,
+      "enable_momentum_exhaustion_exit": true
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2026-08-25 17:58:00+00:00"
+}
