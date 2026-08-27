@@ -19,21 +19,21 @@
     "buy": {
       "cmf_len": 20,
       "sqz_length": 20,
-      "chop_max": 45.7,
-      "cmf_threshold": 0.1,
-      "displacement_atr_mult": 1.24,
-      "displacement_ratio": 0.62,
-      "kama_len": 17
+      "chop_max": 45.2,
+      "cmf_threshold": 0.11,
+      "displacement_atr_mult": 1.56,
+      "displacement_ratio": 0.79,
+      "kama_len": 20
     },
     "sell": {
       "enable_momentum_exhaustion_exit": true,
-      "sl_atr_mult": 2.6,
-      "tp1_r_mult": 2.0,
-      "tp2_r_mult": 3.43,
-      "tp3_r_mult": 7.48,
-      "trail_atr_mult": 1.11
+      "sl_atr_mult": 3.14,
+      "tp1_r_mult": 1.77,
+      "tp2_r_mult": 3.84,
+      "tp3_r_mult": 5.03,
+      "trail_atr_mult": 2.18
     }
   },
   "ft_stratparam_v": 1,
-  "export_time": "2026-08-25 18:05:37.774982+00:00"
+  "export_time": "2026-08-25 18:36:05.608497+00:00"
 }

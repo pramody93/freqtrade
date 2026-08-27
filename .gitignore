@@ -7,8 +7,11 @@ uv.lock
 *.sqlite-wal
 logfile.txt
 user_data/*
-!user_data/strategies/sample_strategy.py
-!user_data/strategies/VoyagerThrustStrategy.*
+!user_data/strategies/
+!user_data/strategies/*
+!user_data/config_5m.json
+!user_data/config_15m.json
+!user_data/config_btc_intraday.json
 !user_data/notebooks
 !user_data/models
 !user_data/freqaimodels
