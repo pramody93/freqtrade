@@ -16,6 +16,7 @@ import pandas as pd
 from pandas import DataFrame
 import talib.abstract as ta
 
+from freqtrade.exchange import timeframe_to_minutes
 from freqtrade.persistence import Trade
 from freqtrade.strategy import (
     DecimalParameter,
@@ -90,17 +91,19 @@ class CryptoIntradayMeanReversion(IStrategy):
     # -------------------------------------------------------------
     # Hyperopt Parameter Spaces
     # -------------------------------------------------------------
-    # Buy / Entry Spaces
-    z_window = IntParameter(10, 40, default=20, space="buy", optimize=True)
-    z_entry_threshold = DecimalParameter(1.5, 3.5, default=2.0, decimals=2, space="buy", optimize=True)
+    # Fixed Indicator Windows (evaluated once in populate_indicators)
+    z_window = IntParameter(10, 40, default=20, space="buy", optimize=False)
     hurst_window = IntParameter(50, 150, default=100, space="buy", optimize=False)
-    hurst_max = DecimalParameter(0.35, 0.60, default=0.52, decimals=2, space="buy", optimize=True)
     atr_window = IntParameter(10, 24, default=14, space="buy", optimize=False)
     atr_pctl_window = IntParameter(50, 150, default=100, space="buy", optimize=False)
+    vol_window = IntParameter(10, 30, default=20, space="buy", optimize=False)
+
+    # Dynamic Entry Spaces (optimized every epoch in populate_entry_trend)
+    z_entry_threshold = DecimalParameter(1.5, 3.0, default=2.0, decimals=2, space="buy", optimize=True)
+    hurst_max = DecimalParameter(0.40, 0.60, default=0.52, decimals=2, space="buy", optimize=True)
     atr_pctl_min = DecimalParameter(10.0, 40.0, default=30.0, decimals=1, space="buy", optimize=True)
     atr_pctl_max = DecimalParameter(60.0, 90.0, default=75.0, decimals=1, space="buy", optimize=True)
-    vol_window = IntParameter(10, 30, default=20, space="buy", optimize=False)
-    volume_z_threshold = DecimalParameter(0.8, 2.5, default=1.5, decimals=2, space="buy", optimize=True)
+    volume_z_threshold = DecimalParameter(0.5, 2.0, default=1.2, decimals=2, space="buy", optimize=True)
 
     # Sell / Exit Spaces
     sl_atr_mult = DecimalParameter(0.8, 2.5, default=1.2, decimals=2, space="sell", optimize=True)
@@ -261,7 +264,7 @@ class CryptoIntradayMeanReversion(IStrategy):
                 return "tp_target_short"
 
         # 2. Time Stop Logic (45 min on 5m = 9 candles)
-        tf_mins = 5 if self.timeframe == "5m" else 15
+        tf_mins = timeframe_to_minutes(self.timeframe)
         elapsed_candles = (current_time - trade.open_date_utc).total_seconds() / (tf_mins * 60)
         half_r_ratio = (0.5 * sl_dist) / trade.open_rate
 

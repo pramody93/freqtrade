@@ -1,0 +1,92 @@
+{
+    "max_open_trades": 1,
+    "stake_currency": "USD",
+    "stake_amount": 100,
+    "tradable_balance_ratio": 0.99,
+    "fiat_display_currency": "USD",
+    "timeframe": "30m",
+    "dry_run": true,
+    "dry_run_wallet": 10000,
+    "trading_mode": "futures",
+    "margin_mode": "isolated",
+    "cancel_open_orders_on_exit": false,
+    "unfilledtimeout": {
+        "entry": 15,
+        "exit": 15,
+        "exit_timeout_count": 0,
+        "unit": "minutes"
+    },
+    "entry_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1,
+        "price_last_balance": 0.0,
+        "check_depth_of_market": {
+            "enabled": false,
+            "bids_to_ask_delta": 1
+        }
+    },
+    "exit_pricing": {
+        "price_side": "other",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "exchange": {
+        "name": "deltaindia",
+        "key": "",
+        "secret": "",
+        "ccxt_config": {
+            "options": {
+                "defaultType": "swap"
+            },
+            "urls": {
+                "api": {
+                    "public": "https://api.india.delta.exchange",
+                    "private": "https://api.india.delta.exchange"
+                }
+            }
+        },
+        "ccxt_async_config": {
+            "options": {
+                "defaultType": "swap"
+            },
+            "urls": {
+                "api": {
+                    "public": "https://api.india.delta.exchange",
+                    "private": "https://api.india.delta.exchange"
+                }
+            }
+        },
+        "pair_whitelist": [
+            "BTC/USD:USD"
+        ],
+        "pair_blacklist": []
+    },
+    "pairlists": [
+        {
+            "method": "StaticPairList"
+        }
+    ],
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "127.0.0.1",
+        "listen_port": 38080,
+        "verbosity": "info",
+        "enable_openapi": false,
+        "jwt_secret_key": "b253c28b16f1e9dd950d37f8fdaa3aceedb3e7b82edb68f786ea1995ee3f6ed3",
+        "ws_token": "vufL9TzXzVTF8XO7eLbZOaV3G14D7ZD5Sg",
+        "CORS_origins": [
+            "https://trading.pineafl.com",
+            "http://trading.pineafl.com",
+            "https://frequi.freqtrade.io"
+        ],
+        "username": "pramod",
+        "password": "Algo@2021"
+    },
+    "bot_name": "Crypto_MeanReversion_30m",
+    "initial_state": "running",
+    "force_entry_enable": true,
+    "internals": {
+        "process_throttle_secs": 5
+    }
+}
