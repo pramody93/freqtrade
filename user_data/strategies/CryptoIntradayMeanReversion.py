@@ -99,16 +99,16 @@ class CryptoIntradayMeanReversion(IStrategy):
     vol_window = IntParameter(10, 30, default=20, space="buy", optimize=False)
 
     # Dynamic Entry Spaces (optimized every epoch in populate_entry_trend)
-    z_entry_threshold = DecimalParameter(1.5, 3.0, default=2.0, decimals=2, space="buy", optimize=True)
-    hurst_max = DecimalParameter(0.40, 0.60, default=0.52, decimals=2, space="buy", optimize=True)
-    atr_pctl_min = DecimalParameter(10.0, 40.0, default=30.0, decimals=1, space="buy", optimize=True)
-    atr_pctl_max = DecimalParameter(60.0, 90.0, default=75.0, decimals=1, space="buy", optimize=True)
-    volume_z_threshold = DecimalParameter(0.5, 2.0, default=1.2, decimals=2, space="buy", optimize=True)
+    z_entry_threshold = DecimalParameter(1.2, 2.8, default=1.8, decimals=2, space="buy", optimize=True)
+    hurst_max = DecimalParameter(0.45, 0.65, default=0.55, decimals=2, space="buy", optimize=True)
+    atr_pctl_min = DecimalParameter(5.0, 40.0, default=20.0, decimals=1, space="buy", optimize=True)
+    atr_pctl_max = DecimalParameter(60.0, 95.0, default=85.0, decimals=1, space="buy", optimize=True)
+    volume_z_threshold = DecimalParameter(0.0, 2.0, default=0.8, decimals=2, space="buy", optimize=True)
 
     # Sell / Exit Spaces
-    sl_atr_mult = DecimalParameter(0.8, 2.5, default=1.2, decimals=2, space="sell", optimize=True)
-    tp_r_mult = DecimalParameter(1.2, 3.5, default=2.0, decimals=2, space="sell", optimize=True)
-    time_stop_candles = IntParameter(5, 18, default=9, space="sell", optimize=True)
+    sl_atr_mult = DecimalParameter(1.0, 3.5, default=1.8, decimals=2, space="sell", optimize=True)
+    tp_r_mult = DecimalParameter(1.2, 4.0, default=2.2, decimals=2, space="sell", optimize=True)
+    time_stop_candles = IntParameter(10, 60, default=24, space="sell", optimize=True)
     risk_pct_per_trade = DecimalParameter(0.002, 0.02, default=0.005, decimals=3, space="sell", optimize=False)
 
     plot_config = {
@@ -251,24 +251,23 @@ class CryptoIntradayMeanReversion(IStrategy):
         last_candle = dataframe.iloc[-1]
         tp_meanrevert = last_candle.get("mean_close", trade.open_rate)
 
-        # 1. Take Profit Logic
+        # 1. Take Profit Logic (Mean reversion or R-multiple target, ensuring min positive return)
         if not trade.is_short:
             tp_rmult_price = trade.open_rate + tp_rmultiple_dist
-            tp_target = min(tp_meanrevert, tp_rmult_price)
+            tp_target = max(trade.open_rate + 0.5 * sl_dist, min(tp_meanrevert, tp_rmult_price))
             if current_rate >= tp_target:
                 return "tp_target_long"
         else:
             tp_rmult_price = trade.open_rate - tp_rmultiple_dist
-            tp_target = max(tp_meanrevert, tp_rmult_price)
+            tp_target = min(trade.open_rate - 0.5 * sl_dist, max(tp_meanrevert, tp_rmult_price))
             if current_rate <= tp_target:
                 return "tp_target_short"
 
-        # 2. Time Stop Logic (45 min on 5m = 9 candles)
+        # 2. Time Stop Logic (Give trades enough time, only exit if stagnant/losing)
         tf_mins = timeframe_to_minutes(self.timeframe)
         elapsed_candles = (current_time - trade.open_date_utc).total_seconds() / (tf_mins * 60)
-        half_r_ratio = (0.5 * sl_dist) / trade.open_rate
 
-        if elapsed_candles >= float(self.time_stop_candles.value) and current_profit < half_r_ratio:
+        if elapsed_candles >= float(self.time_stop_candles.value) and current_profit < 0.0:
             return "time_stop"
 
         return None

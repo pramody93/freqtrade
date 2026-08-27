@@ -22,19 +22,19 @@
       "hurst_window": 100,
       "vol_window": 20,
       "z_window": 20,
-      "atr_pctl_max": 67.8,
-      "atr_pctl_min": 33.3,
-      "hurst_max": 0.49,
-      "volume_z_threshold": 1.76,
-      "z_entry_threshold": 1.55
+      "atr_pctl_max": 75.2,
+      "atr_pctl_min": 38.7,
+      "hurst_max": 0.57,
+      "volume_z_threshold": 1.91,
+      "z_entry_threshold": 2.63
     },
     "sell": {
       "risk_pct_per_trade": 0.005,
-      "sl_atr_mult": 1.17,
-      "time_stop_candles": 18,
-      "tp_r_mult": 2.06
+      "sl_atr_mult": 3.27,
+      "time_stop_candles": 56,
+      "tp_r_mult": 2.85
     }
   },
   "ft_stratparam_v": 1,
-  "export_time": "2026-08-27 10:52:18.568363+00:00"
+  "export_time": "2026-08-27 11:04:21.638209+00:00"
 }
